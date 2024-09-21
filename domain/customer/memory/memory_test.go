@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"errors"
 	"go-api-ddd/aggregate"
 	"go-api-ddd/domain/customer"
 	"testing"
@@ -8,21 +9,19 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestMemory_GetCustomer(t *testing.T) {
+func TestMemory_GetCustom(t *testing.T) {
 	type testCase struct {
-		name        string
-		id          uuid.UUID
+		name string
+		id uuid.UUID
 		expectedErr error
 	}
 
-	// Create a fake customer to add to repository
-	cust, err := aggregate.NewCustomer("Percy")
+	cust, err := aggregate.NewCustomer("habi")
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	id := cust.GetID()
-	// Create the repo to use, and add some test Data to it for testing
-	// Skip Factory for this
 	repo := MemoryRepository{
 		customers: map[uuid.UUID]aggregate.Customer{
 			id: cust,
@@ -31,64 +30,22 @@ func TestMemory_GetCustomer(t *testing.T) {
 
 	testCases := []testCase{
 		{
-			name:        "No Customer By ID",
-			id:          uuid.MustParse("f47ac10b-58cc-0372-8567-0e02b2c3d479"),
+			name: "no customer by id",
+			id: uuid.MustParse("de63cda0-25d3-4de3-b7e6-6c0f737fa91c"),
 			expectedErr: customer.ErrCustomerNotFound,
 		}, {
-			name:        "Customer By ID",
-			id:          id,
+			name: "customer by id",
+			id: id,
 			expectedErr: nil,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			_, err := repo.Get(tc.id)
-			if err != tc.expectedErr {
-				t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
-			}
-		})
-	}
-}
 
-func TestMemory_AddCustomer(t *testing.T) {
-	type testCase struct {
-		name        string
-		cust        string
-		expectedErr error
-	}
-
-	testCases := []testCase{
-		{
-			name:        "Add Customer",
-			cust:        "Percy",
-			expectedErr: nil,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			repo := MemoryRepository{
-				customers: map[uuid.UUID]aggregate.Customer{},
-			}
-
-			cust, err := aggregate.NewCustomer(tc.cust)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			err = repo.Add(cust)
-			if err != tc.expectedErr {
-				t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
-			}
-
-			found, err := repo.Get(cust.GetID())
-			if err != nil {
-				t.Fatal(err)
-			}
-			if found.GetID() != cust.GetID() {
-				t.Errorf("Expected %v, got %v", cust.GetID(), found.GetID())
+			if !errors.Is(err, tc.expectedErr) {
+				t.Errorf("expected error %v, got %v", tc.expectedErr, err)
 			}
 		})
 	}

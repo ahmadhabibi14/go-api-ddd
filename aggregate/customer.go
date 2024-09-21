@@ -9,23 +9,26 @@ import (
 )
 
 var (
-	ErrInvalidPerson = errors.New("a customer has to have an valid person")
+	ErrInvalidPerson = errors.New("a customer has to have a valid name")
 )
 
 type Customer struct {
-	person 				*entity.Person
-	products			[]*entity.Item
-	transactions	[]valueobject.Transaction
+	person *entity.Person
+	products []*entity.Item
+
+	transactions []valueobject.Transaction
 }
 
+// NewCustomer is a factory to create a new customer aggregate
+// it will validate that the name is not empty
 func NewCustomer(name string) (Customer, error) {
 	if name == "" {
 		return Customer{}, ErrInvalidPerson
 	}
 
 	person := &entity.Person{
-		ID: uuid.New(),
 		Name: name,
+		ID: uuid.New(),
 	}
 
 	return Customer{
@@ -43,18 +46,16 @@ func (c *Customer) SetID(id uuid.UUID) {
 	if c.person == nil {
 		c.person = &entity.Person{}
 	}
-
 	c.person.ID = id
-}
-
-func (c *Customer) GetName() string {
-	return c.person.Name
 }
 
 func (c *Customer) SetName(name string) {
 	if c.person == nil {
 		c.person = &entity.Person{}
 	}
-
 	c.person.Name = name
+}
+
+func (c *Customer) GetName() string {
+	return c.person.Name
 }
